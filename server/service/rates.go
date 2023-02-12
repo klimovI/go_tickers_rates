@@ -55,7 +55,7 @@ func (s *RatesService) init() {
 }
 
 func (s *RatesService) updateTickers() {
-	s.tickers = make(Tickers)
+	tickers := make(Tickers)
 	binanceTickers := fetchBinanceTickers()
 
 	for _, ticker := range binanceTickers {
@@ -66,8 +66,10 @@ func (s *RatesService) updateTickers() {
 			continue
 		}
 
-		s.tickers[ticker.Symbol] = price
+		tickers[ticker.Symbol] = price
 	}
+
+	s.tickers = tickers
 }
 
 type binanceTicker struct {

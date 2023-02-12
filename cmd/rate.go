@@ -14,7 +14,7 @@ const pairFlag = "pair"
 
 var rateCmd = &cobra.Command{
 	Use:   "rate",
-	Short: "Get price of given 'pair'",
+	Short: "Get price of given pair",
 	Run: func(cmd *cobra.Command, args []string) {
 		pair, _ := cmd.Flags().GetString(pairFlag)
 		price := fetchPairPrice(pair)
