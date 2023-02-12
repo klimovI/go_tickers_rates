@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -21,7 +20,7 @@ func (h *Handler) getRates(c *gin.Context) {
 	pairs := strings.Split(input, ",")
 
 	if err := validatePairs(pairs); err != nil {
-		newErrorResponse(c, http.StatusNotFound, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -42,7 +41,7 @@ type postRatesInput struct {
 func (h *Handler) postRates(c *gin.Context) {
 	var input postRatesInput
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -50,7 +49,7 @@ func (h *Handler) postRates(c *gin.Context) {
 	pairs := input.Pairs
 
 	if err := validatePairs(pairs); err != nil {
-		newErrorResponse(c, http.StatusNotFound, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -71,8 +70,7 @@ func validatePairs(pairs []string) error {
 		match := pairRegexp.MatchString(pair)
 
 		if match == false {
-			msg := fmt.Sprintf("Pair symbol '%s' is invalid", pair)
-			return errors.New(msg)
+			return fmt.Errorf("pair symbol '%s' is invalid", pair)
 		}
 	}
 

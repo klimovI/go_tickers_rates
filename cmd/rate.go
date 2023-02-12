@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,7 +18,13 @@ var rateCmd = &cobra.Command{
 	Short: "Get price of given pair",
 	Run: func(cmd *cobra.Command, args []string) {
 		pair, _ := cmd.Flags().GetString(pairFlag)
-		price := fetchPairPrice(pair)
+		price, err := fetchPairPrice(pair)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
 		fmt.Println(price)
 	},
 }
@@ -33,7 +40,7 @@ func init() {
 
 const apiRatesUrl = "http://localhost:3001/api/v1/rates"
 
-func fetchPairPrice(pair string) float64 {
+func fetchPairPrice(pair string) (float64, error) {
 	client := &http.Client{}
 	request, _ := http.NewRequest(http.MethodGet, apiRatesUrl, nil)
 
@@ -44,19 +51,29 @@ func fetchPairPrice(pair string) float64 {
 	response, err := client.Do(request)
 
 	if err != nil {
-		log.Fatalln(err)
+		return 0, err
 	}
+
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Println(err.Error())
+		}
+	}()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return 0, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return 0, errors.New(response.Status)
 	}
 
 	var data map[string]float64
 
 	if err = json.Unmarshal(body, &data); err != nil {
-		log.Fatalln(err)
+		return 0, err
 	}
 
-	return data[pair]
+	return data[pair], nil
 }

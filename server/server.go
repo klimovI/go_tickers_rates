@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -24,18 +23,18 @@ func StartServer() {
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			log.Fatalf("Error starting server: %s", err.Error())
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("Error running server: %s", err.Error())
 		}
 	}()
 
-	fmt.Println("Listening at port " + port)
+	log.Println("Listening at port " + port)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	fmt.Println("Shutting down")
+	log.Println("Shutting down")
 
 	if err := server.Shutdown(context.Background()); err != nil {
 		log.Fatalf("Error shutting down: %s", err.Error())

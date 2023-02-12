@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -34,8 +33,7 @@ func (s *RatesService) GetTickers(pairs []string) (Tickers, error) {
 		price, isFound := s.tickers[symbol]
 
 		if isFound == false {
-			msg := fmt.Sprintf("Pair '%s' not found", pair)
-			return nil, errors.New(msg)
+			return nil, fmt.Errorf("pair '%s' not found", pair)
 		}
 
 		tickers[pair] = price
@@ -55,14 +53,19 @@ func (s *RatesService) init() {
 }
 
 func (s *RatesService) updateTickers() {
+	binanceTickers, err := fetchBinanceTickers()
+
+	if err != nil {
+		return
+	}
+
 	tickers := make(Tickers)
-	binanceTickers := fetchBinanceTickers()
 
 	for _, ticker := range binanceTickers {
 		price, err := strconv.ParseFloat(ticker.Price, 64)
 
 		if err != nil {
-			log.Println(err)
+			log.Println(err.Error())
 			continue
 		}
 
@@ -77,26 +80,26 @@ type binanceTicker struct {
 	Price  string `json:"price"`
 }
 
-func fetchBinanceTickers() []binanceTicker {
+func fetchBinanceTickers() ([]binanceTicker, error) {
 	apiUrl := "https://api.binance.com/api/v3/ticker/price"
 
 	response, err := http.Get(apiUrl)
 
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	var binanceTickers []binanceTicker
 
 	if err = json.Unmarshal(body, &binanceTickers); err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	return binanceTickers
+	return binanceTickers, nil
 }
