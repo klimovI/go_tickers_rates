@@ -32,7 +32,7 @@ func (s *RatesService) GetTickers(pairs []string) (Tickers, error) {
 		symbol := strings.Replace(pair, "-", "", 1)
 		price, isFound := s.tickers[symbol]
 
-		if isFound == false {
+		if !isFound {
 			return nil, fmt.Errorf("pair '%s' not found", pair)
 		}
 
