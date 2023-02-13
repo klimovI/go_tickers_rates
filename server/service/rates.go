@@ -89,6 +89,12 @@ func fetchBinanceTickers() ([]binanceTicker, error) {
 		return nil, err
 	}
 
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Println(err.Error())
+		}
+	}()
+
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
