@@ -15,7 +15,7 @@ func NewHandler(services *service.Service) *Handler {
 }
 
 func (h *Handler) Init() *gin.Engine {
-	router := gin.New()
+	router := gin.Default()
 
 	api := router.Group("/api")
 	{
