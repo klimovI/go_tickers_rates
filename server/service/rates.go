@@ -2,8 +2,8 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -84,7 +84,6 @@ func fetchBinanceTickers() ([]binanceTicker, error) {
 	apiUrl := "https://api.binance.com/api/v3/ticker/price"
 
 	response, err := http.Get(apiUrl)
-
 	if err != nil {
 		return nil, err
 	}
@@ -95,15 +94,12 @@ func fetchBinanceTickers() ([]binanceTicker, error) {
 		}
 	}()
 
-	body, err := io.ReadAll(response.Body)
-
-	if err != nil {
-		return nil, err
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New(response.Status)
 	}
 
 	var binanceTickers []binanceTicker
-
-	if err = json.Unmarshal(body, &binanceTickers); err != nil {
+	if err := json.NewDecoder(response.Body).Decode(&binanceTickers); err != nil {
 		return nil, err
 	}
 

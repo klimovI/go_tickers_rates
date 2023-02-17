@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
@@ -49,7 +48,6 @@ func fetchPairPrice(pair string) (float64, error) {
 	request.URL.RawQuery = query.Encode()
 
 	response, err := client.Do(request)
-
 	if err != nil {
 		return 0, err
 	}
@@ -60,18 +58,12 @@ func fetchPairPrice(pair string) (float64, error) {
 		}
 	}()
 
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return 0, err
-	}
-
 	if response.StatusCode != http.StatusOK {
 		return 0, errors.New(response.Status)
 	}
 
 	var data map[string]float64
-
-	if err = json.Unmarshal(body, &data); err != nil {
+	if err := json.NewDecoder(response.Body).Decode(&data); err != nil {
 		return 0, err
 	}
 
